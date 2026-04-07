@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineHub - Download Movies & Subtitles</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #e50914;
+            --primary-dark: #b20710;
+            --dark: #0f0f0f;
+            --darker: #000000;
+            --card-bg: #1a1a1a;
+            --card-hover: #2a2a2a;
+            --text: #ffffff;
+            --text-muted: #a3a3a3;
+            --border: #2a2a2a;
+            --gradient: linear-gradient(135deg, #e50914 0%, #b20710 100%);
+        }
+
+        [data-theme="light"] {
+            --dark: #f5f5f5;
+            --darker: #ffffff;
+            --card-bg: #ffffff;
+            --card-hover: #f0f0f0;
+            --text: #1a1a1a;
+            --text-muted: #666666;
+            --border: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--darker);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            padding: 1rem 4%;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid var(--border);
+        }
+
+        [data-theme="light"] .navbar {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .theme-toggle, .favorites-btn {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .theme-toggle:hover, .favorites-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .mobile-menu {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 70px;
+            position: relative;
+            height: 80vh;
+            min-height: 600px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(229, 9, 20, 0.3) 0%, rgba(0, 0, 0, 0.8) 100%),
+                        url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1920') center/cover;
+            z-index: -1;
+        }
+
+        .hero-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 4%;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .hero-meta {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+
+        .hero-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .rating {
+            color: #ffd700;
+        }
+
+        .hero-description {
+            max-width: 600px;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: var(--text-muted);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(229, 9, 20, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Search Section */
+        .search-section {
+            background: var(--card-bg);
+            padding: 2rem 4%;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 70px;
+            z-index: 100;
+        }
+
+        .search-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            background: var(--darker);
+            border: 2px solid var(--border);
+            color: var(--text);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 0.8rem 1.5rem;
+            background: var(--darker);
+            border: 2px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 4%;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .view-all {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: gap 0.3s;
+        }
+
+        .view-all:hover {
+            gap: 1rem;
+        }
+
+        /* Movie Grid */
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .movie-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            border: 1px solid var(--border);
+        }
+
+        .movie-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            border-color: var(--primary);
+        }
+
+        .movie-poster {
+            position: relative;
+            aspect-ratio: 2/3;
+            overflow: hidden;
+        }
+
+        .movie-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .movie-card:hover .movie-poster img {
+            transform: scale(1.1);
+        }
+
+        .movie-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1rem;
+        }
+
+        .movie-card:hover .movie-overlay {
+            opacity: 1;
+        }
+
+        .quality-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .movie-rating {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: #ffd700;
+            padding: 0.3rem 0.8rem;
+            border-radius: 5px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+            box-shadow: 0 10px 30px rgba(229, 9, 20, 0.4);
+        }
+
+        .movie-card:hover .play-btn {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .movie-info {
+            padding: 1rem;
+        }
+
+        .movie-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .movie-meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .bookmark-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .bookmark-btn:hover, .bookmark-btn.active {
+            background: var(--primary);
+            transform: scale(1.1);
+        }
+
+        /* Movie Detail Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            max-width: 1200px;
+            margin: 2rem auto;
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            animation: slideUp 0.4s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            border: none;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: var(--primary);
+            transform: rotate(90deg);
+        }
+
+        .modal-hero {
+            position: relative;
+            height: 500px;
+            background: linear-gradient(to top, var(--card-bg) 0%, transparent 60%),
+                        var(--modal-bg-img) center/cover;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .modal-details {
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 3rem;
+            margin-top: -150px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .modal-poster {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 3px solid var(--card-bg);
+        }
+
+        .modal-poster img {
+            width: 100%;
+            display: block;
+        }
+
+        .modal-info h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-meta {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .modal-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .modal-description {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .download-section {
+            background: var(--darker);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+        }
+
+        .section-label {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .download-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .download-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+
+        .download-quality {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .download-info {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .download-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .subtitle-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .subtitle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .subtitle-item:hover {
+            border-color: var(--primary);
+            background: var(--card-hover);
+        }
+
+        .subtitle-lang {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-weight: 500;
+        }
+
+        .lang-flag {
+            width: 24px;
+            height: 18px;
+            border-radius: 3px;
+            object-fit: cover;
+        }
+
+        .trailer-section {
+            margin: 2rem 0;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 16px;
+            background: var(--darker);
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .related-section {
+            padding: 2rem;
+            background: var(--darker);
+        }
+
+        /* Favorites Panel */
+        .favorites-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100%;
+            background: var(--card-bg);
+            z-index: 1500;
+            transition: right 0.3s ease;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+
+        .favorites-panel.active {
+            right: 0;
+        }
+
+        .favorites-header {
+            padding: 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--card-bg);
+            z-index: 10;
+        }
+
+        .favorites-list {
+            padding: 1rem;
+        }
+
+        .favorite-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .favorite-item:hover {
+            background: var(--card-hover);
+        }
+
+        .favorite-thumb {
+            width: 60px;
+            height: 90px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .favorite-info h4 {
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .favorite-info p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .remove-fav {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .remove-fav:hover {
+            color: var(--primary);
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1400;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            z-index: 3000;
+            opacity: 0;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(229, 9, 20, 0.4);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Loading Animation */
+        .loader {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2500;
+        }
+
+        .loader.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 3rem;
+        }
+
+        .page-btn {
+            padding: 0.8rem 1.2rem;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .page-btn:hover, .page-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--dark);
+            padding: 3rem 4%;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .footer-section a {
+            display: block;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: var(--text);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .modal-details {
+                grid-template-columns: 1fr;
+                margin-top: 0;
+            }
+
+            .modal-poster {
+                max-width: 200px;
+                margin: 0 auto;
+            }
+
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .favorites-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .hero {
+                height: 60vh;
+                min-height: 400px;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .hero-meta {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .filters {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 0.5rem;
+            }
+
+            .modal-hero {
+                height: 300px;
+            }
+
+            .modal-info h2 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--darker);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo" onclick="showHome()">
+                <i class="fas fa-film"></i>
+                CineHub
+            </a>
+            <div class="nav-links">
+                <a href="#" onclick="showHome()">Home</a>
+                <a href="#" onclick="filterByType('movie')">Movies</a>
+                <a href="#" onclick="filterByType('tv')">TV Shows</a>
+                <a href="#" onclick="filterByType('new')">New Releases</a>
+                <a href="#" onclick="filterByType('popular')">Popular</a>
+            </div>
+            <div class="nav-actions">
+                <button class="favorites-btn" onclick="toggleFavorites()">
+                    <i class="fas fa-heart"></i>
+                    <span id="fav-count">0</span>
+                </button>
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
+                <div class="mobile-menu" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <span class="hero-badge">Featured Today</span>
+            <h1 id="hero-title">Inception</h1>
+            <div class="hero-meta">
+                <span class="rating"><i class="fas fa-star"></i> <span id="hero-rating">8.8</span>/10</span>
+                <span><i class="fas fa-calendar"></i> <span id="hero-year">2010</span></span>
+                <span><i class="fas fa-clock"></i> <span id="hero-duration">148 min</span></span>
+                <span><i class="fas fa-film"></i> <span id="hero-genre">Sci-Fi</span></span>
+            </div>
+            <p class="hero-description" id="hero-desc">
+                A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.
+            </p>
+            <div class="hero-buttons">
+                <button class="btn btn-primary" onclick="playFeatured()">
+                    <i class="fas fa-play"></i> Watch Trailer
+                </button>
+                <button class="btn btn-secondary" onclick="downloadFeatured()">
+                    <i class="fas fa-download"></i> Download Now
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="search-container">
+            <div class="search-box">
+                <div class="search-input-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search movies, TV shows, genres..." onkeyup="handleSearch()">
+                </div>
+            </div>
+            <div class="filters">
+                <select class="filter-select" id="genreFilter" onchange="applyFilters()">
+                    <option value="">All Genres</option>
+                    <option value="action">Action</option>
+                    <option value="adventure">Adventure</option>
+                    <option value="comedy">Comedy</option>
+                    <option value="drama">Drama</option>
+                    <option value="horror">Horror</option>
+                    <option value="sci-fi">Sci-Fi</option>
+                    <option value="thriller">Thriller</option>
+                    <option value="romance">Romance</option>
+                </select>
+                <select class="filter-select" id="yearFilter" onchange="applyFilters()">
+                    <option value="">All Years</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
+                    <option value="2019">2019</option>
+                    <option value="older">Older</option>
+                </select>
+                <select class="filter-select" id="languageFilter" onchange="applyFilters()">
+                    <option value="">All Languages</option>
+                    <option value="english">English</option>
+                    <option value="spanish">Spanish</option>
+                    <option value="french">French</option>
+                    <option value="hindi">Hindi</option>
+                    <option value="korean">Korean</option>
+                    <option value="japanese">Japanese</option>
+                </select>
+                <select class="filter-select" id="qualityFilter" onchange="applyFilters()">
+                    <option value="">All Quality</option>
+                    <option value="4K">4K</option>
+                    <option value="1080p">1080p</option>
+                    <option value="720p">720p</option>
+                    <option value="480p">480p</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Top Downloads -->
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-fire" style="color: var(--primary);"></i>
+                    Top Downloads Today
+                </h2>
+                <a href="#" class="view-all" onclick="viewAll('top')">View All <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="movie-grid" id="topDownloads"></div>
+        </section>
+
+        <!-- Recently Added -->
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-clock" style="color: var(--primary);"></i>
+                    Recently Added
+                </h2>
+                <a href="#" class="view-all" onclick="viewAll('recent')">View All <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="movie-grid" id="recentlyAdded"></div>
+        </section>
+
+        <!-- Popular Movies -->
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-line" style="color: var(--primary);"></i>
+                    Popular Movies
+                </h2>
+                <a href="#" class="view-all" onclick="viewAll('popular')">View All <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="movie-grid" id="popularMovies"></div>
+        </section>
+
+        <!-- TV Shows -->
+        <section class="content-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-tv" style="color: var(--primary);"></i>
+                    Trending TV Shows
+                </h2>
+                <a href="#" class="view-all" onclick="viewAll('tv')">View All <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="movie-grid" id="trendingTV"></div>
+        </section>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination">
+            <button class="page-btn" onclick="changePage('prev')"><i class="fas fa-chevron-left"></i></button>
+            <button class="page-btn active" onclick="goToPage(1)">1</button>
+            <button class="page-btn" onclick="goToPage(2)">2</button>
+            <button class="page-btn" onclick="goToPage(3)">3</button>
+            <button class="page-btn" onclick="changePage('next')"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </main>
+
+    <!-- Movie Detail Modal -->
+    <div class="modal" id="movieModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="modal-hero" id="modalHero">
+                <div class="hero-bg" style="position: absolute; width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0.3;"></div>
+            </div>
+
+            <div class="modal-details">
+                <div class="modal-poster">
+                    <img id="modalPoster" src="" alt="Movie Poster">
+                </div>
+                
+                <div class="modal-info">
+                    <h2 id="modalTitle">Movie Title</h2>
+                    <div class="modal-meta">
+                        <span class="rating"><i class="fas fa-star"></i> <span id="modalRating">0.0</span></span>
+                        <span><i class="fas fa-calendar"></i> <span id="modalYear">2024</span></span>
+                        <span><i class="fas fa-clock"></i> <span id="modalDuration">0 min</span></span>
+                        <span><i class="fas fa-film"></i> <span id="modalGenre">Action</span></span>
+                        <span><i class="fas fa-globe"></i> <span id="modalLanguage">English</span></span>
+                    </div>
+                    
+                    <p class="modal-description" id="modalDescription">
+                        Movie description goes here...
+                    </p>
+
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" onclick="watchTrailer()">
+                            <i class="fas fa-play"></i> Watch Trailer
+                        </button>
+                        <button class="btn btn-secondary" id="modalBookmark" onclick="toggleBookmarkModal()">
+                            <i class="far fa-heart"></i> Add to Favorites
+                        </button>
+                        <button class="btn btn-secondary" onclick="shareMovie()">
+                            <i class="fas fa-share-alt"></i> Share
+                        </button>
+                    </div>
+
+                    <div class="trailer-section" id="trailerSection" style="display: none;">
+                        <div class="video-container">
+                            <iframe id="trailerFrame" src="" allowfullscreen></iframe>
+                        </div>
+                    </div>
+
+                    <div class="download-section">
+                        <div class="section-label">
+                            <i class="fas fa-download"></i>
+                            Download Links
+                        </div>
+                        <div class="download-grid" id="downloadLinks">
+                            <!-- Download cards injected here -->
+                        </div>
+                    </div>
+
+                    <div class="download-section">
+                        <div class="section-label">
+                            <i class="fas fa-closed-captioning"></i>
+                            Subtitles
+                        </div>
+                        <div class="subtitle-list" id="subtitleList">
+                            <!-- Subtitle items injected here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="related-section">
+                <div class="section-header">
+                    <h2 class="section-title">You May Also Like</h2>
+                </div>
+                <div class="movie-grid" id="relatedMovies"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Favorites Panel -->
+    <div class="overlay" id="overlay" onclick="toggleFavorites()"></div>
+    <div class="favorites-panel" id="favoritesPanel">
+        <div class="favorites-header">
+            <h2><i class="fas fa-heart" style="color: var(--primary);"></i> My Favorites</h2>
+            <button class="modal-close" onclick="toggleFavorites()" style="position: static; width: 40px; height: 40px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="favorites-list" id="favoritesList">
+            <!-- Favorites injected here -->
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">Added to favorites!</div>
+
+    <!-- Loader -->
+    <div class="loader" id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>CineHub</h3>
+                <p style="color: var(--text-muted); line-height: 1.6;">
+                    Your ultimate destination for downloading movies and subtitles. High quality, fast downloads, completely free.
+                </p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <a href="#" onclick="showHome()">Home</a>
+                <a href="#" onclick="filterByType('movie')">Movies</a>
+                <a href="#" onclick="filterByType('tv')">TV Shows</a>
+                <a href="#" onclick="filterByType('new')">New Releases</a>
+            </div>
+            <div class="footer-section">
+                <h3>Categories</h3>
+                <a href="#" onclick="filterByGenre('action')">Action</a>
+                <a href="#" onclick="filterByGenre('comedy')">Comedy</a>
+                <a href="#" onclick="filterByGenre('drama')">Drama</a>
+                <a href="#" onclick="filterByGenre('horror')">Horror</a>
+            </div>
+            <div class="footer-section">
+                <h3>Connect</h3>
+                <a href="#"><i class="fab fa-facebook"></i> Facebook</a>
+                <a href="#"><i class="fab fa-twitter"></i> Twitter</a>
+                <a href="#"><i class="fab fa-instagram"></i> Instagram</a>
+                <a href="#"><i class="fab fa-telegram"></i> Telegram</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 CineHub. All rights reserved. | Free Movie & Subtitle Downloads</p>
+        </div>
+    </footer>
+
+    <script>
+        // Database
+        const moviesDB = [
+            {
+                id: 1,
+                title: "Inception",
+                year: 2010,
+                rating: 8.8,
+                duration: "148 min",
+                genre: "sci-fi",
+                genreDisplay: "Sci-Fi",
+                language: "english",
+                type: "movie",
+                quality: "1080p",
+                poster: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=500",
+                backdrop: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1920",
+                description: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+                trailer: "https://www.youtube.com/embed/YoHD9XEInc0",
+                downloads: [
+                    { quality: "4K", size: "15.4 GB", url: "#" },
+                    { quality: "1080p", size: "2.1 GB", url: "#" },
+                    { quality: "720p", size: "1.2 GB", url: "#" },
+                    { quality: "480p", size: "450 MB", url: "#" }
+                ],
+                subtitles: [
+                    { lang: "English", code: "en", flag: "https://flagcdn.com/w40/us.png" },
+                    { lang: "Spanish", code: "es", flag: "https://flagcdn.com/w40/es.png" },
+                    { lang: "French", code: "fr", flag: "https://flagcdn.com/w40/fr.png" },
+                    { lang: "German", code: "de", flag: "https://flagcdn.com/w40/de.png" },
+                    { lang: "Arabic", code: "ar", flag: "https://flagcdn.com/w40/sa.png" }
+                ],
+                downloads24h: 15420,
+                dateAdded: "2024-01-15"
+            },
+            {
+                id: 2,
+                title: "The Dark Knight",
+                year: 2008,
+                rating: 9.0,
+                duration: "152 min",
+                genre: "action",
+                genreDisplay: "Action",
+                language: "english",
+                type: "movie",
+                quality: "1080p",
+                poster: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=500",
+                backdrop: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1920",
+                description: "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
+                trailer: "https://www.youtube.com/embed/EXeTwQWrcwY",
+                downloads: [
+                    { quality: "4K", size: "18.2 GB", url: "#" },
+                    { quality: "1080p", size: "2.8 GB", url: "#" },
+                    { quality: "720p", size: "1.5 GB", url: "#" }
+                ],
+                subtitles: [
+                    { lang: "English", code: "en", flag: "https://flagcdn.com/w40/us.png" },
+                    { lang: "Spanish", code: "es", flag: "https://flagcdn.com/w40/es.png" },
+                    { lang: "French", code: "fr", flag: "https://flagcdn.com/w40/fr.png" }
+                ],
+                downloads24h: 18250,
+                dateAdded: "2024-01-14"
+            },
+            {
+                id: 3,
+                title: "Interstellar",
+                year: 2014,
+                rating: 8.6,
+                duration: "169 min",
+                genre: "sci-fi",
+                genreDisplay: "Sci-Fi",
+                language: "english",
+                type: "movie",
+                quality: "4K",
+                poster: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=500",
+                backdrop: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1920",
+                description: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+                trailer: "https://www.youtube.com/embed/zSWdZVtXT7E",
+                downloads: [
+                    { quality: "4K", size: "22.1 GB", url: "#" },
+                    { quality: "1080p", size: "3.2 GB", url: "#" },
+                    { quality: "720p", size: "1.8 GB", url: "#" }
+                ],
+                subtitles: [
+                    { lang: "English", code: "en", flag: "https://flagcdn.com/w40/us.png" },
+                    { lang: "Spanish", code: "es", flag: "https://flagcdn.com/w40/es.png" },
+                    { lang: "French", code: "fr", flag: "https://flagcdn.com/w40/fr.png" },
+                    { lang: "Japanese", code: "ja", flag: "https://flagcdn.com/w40/jp.png" }
+                ],
+                downloads24h: 12300,
+                dateAdded: "2024-01-13"
+            },
+            {
+                id: 4,
+                title: "Parasite",
+                year: 2019,
+                rating: 8.5,
+                duration: "132 min",
+                genre: "thriller",
+                genreDisplay: "Thriller",
+                language: "korean",
+                type: "movie",
+                quality: "1080p",
+                poster: "https://images.unsplash.com/photo-1594909122849-11daa4e4ace2?w=500",
+                backdrop: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=1920",
+                description: "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.",
+                trailer: "https://www.youtube.com/embed/5xH0HfJHsaY",
+                downloads: [
+                    { quality: "1080p", size: "2.4 GB", url: "#" },
+                    { quality: "720p", size: "1.3 GB", url: "#" }
+                ],
+                subtitles: [
+                    { lang: "English", code: "en", flag: "https://flagcdn.com/w40/us.png" },
+                    { lang: "Korean", code: "ko", flag: "https://flagcdn.com/w40/kr.png" },
+                    { lang: "Spanish", code: "es", flag: "https://flagcdn.com/w40/es.png" }
+                ],
+                downloads24h: 9800,
+                dateAdded: "2024-01-12"
+            },
+            {
+                id: 5,
+                title: "The Mandalorian",
+                year: 2019,
+                rating: 8.7,
+                duration: "40 min/episode",
+                genre: "sci-fi",
+                genreDisplay: "Sci-Fi",
+                language: "english",
+                type: "tv",
+                quality: "4K",
+                poster: "https://images.unsplash.com/photo-1601814933824-fd0b574de592?w=500",
+                backdrop: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920",
+                description: "The travels of a lone bounty hunter in the outer reaches of the galaxy, far from the authority of the New Republic.",
+                trailer: "https://www.youtube.com/embed/aOC8E8z_ifw",
+                downloads: [
+                    { quality: "4K", size: "45 GB (Season 1)", url: "#" },
+                    { quality: "1080p", size: "12 GB (Season 1)", url: "#" },
+                    { quality: "720p", size: "6 GB (Season 1)", url: "#" }
+                ],
+                subtitles: [
+                    { lang: "English", code: "en", flag: "https://flagcdn.com/w40/us.png" },
+                    { lang: "Spanish", code: "es", flag: "https://flagcdn.com/w40/es.png" },
+                    { lang: "French", code: "fr", flag: "https://flagcdn.com/w40/fr.png" }
+                ],
+                downloads24h: 22100,
+                dateAdded: "2024-01-16"
+            },
+            {
+                id: 6,
+                title: "Breaking Bad",
+                year: 2008,
+                rating: 9.5,
+                duration: "47 min/episode",
+                genre: "drama",
+                genreDisplay: "Drama",
+                language: "english",
+                type: "tv",
+                quality: "1080p",
+                poster: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=500",
+                backdrop: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=1920",
+                description: "A high school chemistry teacher turned methamphetamine manufacturing drug dealer navigates the dangers of the criminal underworld.",
+                trailer: "https://www.youtube.com/embed/HhesaQXLuRY",
+                downloads: [
+                    { quality: "1080p", size: "85 GB (Complete)", url: "#" },
+                    { quality: "720p", size: "45 GB (Complete)", url: "#" }
+                ],
+                subtitles: [
+                    { lang: "English", code: "en", flag: "https://flagcdn.com/w40/us.png" },
+                    { lang: "Spanish", code: "es", flag: "https://flagcdn.com/w40/es.png" },
+                    { lang: "Portuguese", code: "pt", flag: "https://flagcdn.com/w40/br.png" }
+                ],
+                downloads24h: 18500,
+                dateAdded: "2024-01-10"
+            },
+            {
+                id: 7,
+                title: "sushen",
+                year: 2021,
+                rating: 8.2,
+                duration: "148 min",
+                genre: "action",
+                genreDisplay: "Action",
+                language: "english",
+                type: "movie",
+                quality: "4K",
+                poster: "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=500",
+                backdrop: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=1920",
+                description: "With Spider-Man's identity now revealed, Peter asks Doctor Strange for help. When a spell goes wrong, dangerous foes from other worlds start to appear.",
+                trailer: "https://www.youtube.com/embed/JfVOs4VSpmA",
+                downloads: [
+                    { quality: "4K", size: "19.5 GB", url: "#" },
+                    { quality: "1080p", size: "2.9 GB", url: "#" },
+                    { quality: "720p", size: "1.6 GB", url: "#" }
+                ],
+                subtitles: [
+                    { lang: "English", code: "en", flag: "https://flagcdn.com/w40/us.png" },
+                    { lang: "Spanish", code: "es", flag: "https://flagcdn.com/w40/es.png" },
+                    { lang: "French", code: "fr", flag: "https://flagcdn.com/w40/fr.png" },
+                    { lang: "Hindi", code: "hi", flag: "https://flagcdn.com/w40/in.png" }
+                ],
+                downloads24h: 25600,
+                dateAdded: "2024-01-16"
+            },
+            {
+                id: 8,
+                title: "Dune",
+                year: 2021,
+                rating: 8.0,
+                duration: "155 min",
+                genre: "sci-fi",
+                genreDisplay: "Sci-Fi",
+                language: "english",
+                type: "movie",
+                quality: "4K",
+                poster: "https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=500",
+                backdrop: "https://images.unsplash.com/photo-1541963463532-d68292c34b19?w=1920",
+                description: "A noble family becomes embroiled in a war for control over the galaxy's most valuable asset while its heir becomes troubled by visions of a dark future.",
+                trailer: "https://www.youtube.com/embed/n9xhJrPXop4",
+                downloads: [
+                    { quality: "4K", size: "21.3 GB", url: "#" },
+                    { quality: "1080p", size: "3.1 GB", url: "#" },
+                    { quality: "720p", size: "1.7 GB", url: "#" }
+                ],
+                subtitles: [
+                    { lang: "English", code: "en", flag: "https://flagcdn.com/w40/us.png" },
+                    { lang: "Spanish", code: "es", flag: "https://flagcdn.com/w40/es.png" },
+                    { lang: "French", code: "fr", flag: "https://flagcdn.com/w40/fr.png" }
+                ],
+                downloads24h: 19800,
+                dateAdded: "2024-01-15"
+            },
+            {
+                id: 9,
+                title: "Stranger Things",
+                year: 2016,
+                rating: 8.7,
+                duration: "50 min/episode",
+                genre: "horror",
+                genreDisplay: "Horror",
+                language: "english",
+                type: "tv",
+                quality: "4K",
+                poster: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=500",
+                backdrop: "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?w=1920",
+                description: "When a young boy disappears, his mother, a police chief and his friends must confront terrifying supernatural forces in order to get him back.",
+                trailer: "https://www.youtube.com/embed/b9EkMc79ZSU",
+                downloads: [
+                    { quality: "4K", size: "120 GB (Complete)", url: "#" },
+                    { quality: "1080p", size: "35 GB (Complete)", url: "#" }
+                ],
+                subtitles: [
+                    { lang: "English", code: "en", flag: "https://flagcdn.com/w40/us.png" },
+                    { lang: "Spanish", code: "es", flag: "https://flagcdn.com/w40/es.png" },
+                    { lang: "French", code: "fr", flag: "https://flagcdn.com/w40/fr.png" }
+                ],
+                downloads24h: 16700,
+                dateAdded: "2024-01-11"
+            },
+            {
+                id: 10,
+                title: "The Witcher",
+                year: 2019,
+                rating: 8.2,
+                duration: "60 min/episode",
+                genre: "fantasy",
+                genreDisplay: "Fantasy",
+                language: "english",
+                type: "tv",
+                quality: "4K",
+                poster: "https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?w=500",
+                backdrop: "https://images.unsplash.com/photo-1514539079130-25950c84af65?w=1920",
+                description: "Geralt of Rivia, a solitary monster hunter, struggles to find his place in a world where people often prove more wicked than beasts.",
+                trailer: "https://www.youtube.com/embed/ndl1W4ltcmg",
+                downloads: [
+                    { quality: "4K", size: "65 GB (Complete)", url: "#" },
+                    { quality: "1080p", size: "18 GB (Complete)", url: "#" }
+                ],
+                subtitles: [
+                    { lang: "English", code: "en", flag: "https://flagcdn.com/w40/us.png" },
+                    { lang: "Polish", code: "pl", flag: "https://flagcdn.com/w40/pl.png" },
+                    { lang: "Spanish", code: "es", flag: "https://flagcdn.com/w40/es.png" }
+                ],
+                downloads24h: 14200,
+                dateAdded: "2024-01-09"
+            },
+            {
+                id: 11,
+                title: "Oppenheimer",
+                year: 2023,
+                rating: 8.4,
+                duration: "180 min",
+                genre: "drama",
+                genreDisplay: "Drama",
+                language: "english",
+                type: "movie",
+                quality: "4K",
+                poster: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500",
+                backdrop: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1920",
+                description: "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.",
+                trailer: "https://www.youtube.com/embed/bB4BjAPgXQI",
+                downloads: [
+                    { quality: "4K", size: "25.4 GB", url: "#" },
+                    { quality: "1080p", size: "4.2 GB", url: "#" },
+                    { quality: "720p", size: "2.1 GB", url: "#" }
+                ],
+                subtitles: [
+                    { lang: "English", code: "en", flag: "https://flagcdn.com/w40/us.png" },
+                    { lang: "Spanish", code: "es", flag: "https://flagcdn.com/w40/es.png" },
+                    { lang: "French", code: "fr", flag: "https://flagcdn.com/w40/fr.png" },
+                    { lang: "German", code: "de", flag: "https://flagcdn.com/w40/de.png" }
+                ],
+                downloads24h: 31200,
+                dateAdded: "2024-01-17"
+            },
+            {
+                id: 12,
+                title: "Barbie",
+                year: 2023,
+                rating: 7.0,
+                duration: "114 min",
+                genre: "comedy",
+                genreDisplay: "Comedy",
+                language: "english",
+                type: "movie",
+                quality: "4K",
+                poster: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=500",
+                backdrop: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=1920",
+                description: "Barbie suffers a crisis that leads her to question her world and her existence.",
+                trailer: "https://www.youtube.com/embed/pBk4NYhWNMM",
+                downloads: [
+                    { quality: "4K", size: "18.9 GB", url: "#" },
+                    { quality: "1080p", size: "2.8 GB", url: "#" },
+                    { quality: "720p", size: "1.5 GB", url: "#" }
+                ],
+                subtitles: [
+                    { lang: "English", code: "en", flag: "https://flagcdn.com/w40/us.png" },
+                    { lang: "Spanish", code: "es", flag: "https://flagcdn.com/w40/es.png" },
+                    { lang: "French", code: "fr", flag: "https://flagcdn.com/w40/fr.png" }
+                ],
+                downloads24h: 28900,
+                dateAdded: "2024-01-16"
+            }
+        ];
+
+        // State
+        let currentPage = 1;
+        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        let currentMovie = null;
+        let filteredMovies = [...moviesDB];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMovies();
+            updateFavoritesCount();
+            loadTheme();
+            
+            // Set featured movie
+            const featured = moviesDB[0];
+            document.getElementById('hero-title').textContent = featured.title;
+            document.getElementById('hero-rating').textContent = featured.rating;
+            document.getElementById('hero-year').textContent = featured.year;
+            document.getElementById('hero-duration').textContent = featured.duration;
+            document.getElementById('hero-genre').textContent = featured.genreDisplay;
+            document.getElementById('hero-desc').textContent = featured.description;
+        });
+
+        // Render Functions
+        function renderMovies() {
+            const topDownloads = [...moviesDB].sort((a, b) => b.downloads24h - a.downloads24h).slice(0, 6);
+            const recentlyAdded = [...moviesDB].sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded)).slice(0, 6);
+            const popularMovies = moviesDB.filter(m => m.type === 'movie').sort((a, b) => b.rating - a.rating).slice(0, 6);
+            const trendingTV = moviesDB.filter(m => m.type === 'tv').slice(0, 6);
+
+            renderGrid('topDownloads', topDownloads);
+            renderGrid('recentlyAdded', recentlyAdded);
+            renderGrid('popularMovies', popularMovies);
+            renderGrid('trendingTV', trendingTV);
+        }
+
+        function renderGrid(elementId, movies) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = movies.map(movie => createMovieCard(movie)).join('');
+        }
+
+        function createMovieCard(movie) {
+            const isFav = favorites.includes(movie.id);
+            return `
+                <div class="movie-card fade-in" onclick="openMovie(${movie.id})">
+                    <div class="movie-poster">
+                        <img src="${movie.poster}" alt="${movie.title}" loading="lazy">
+                        <span class="quality-badge">${movie.quality}</span>
+                        <span class="movie-rating"><i class="fas fa-star"></i> ${movie.rating}</span>
+                        <button class="bookmark-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite(${movie.id})">
+                            <i class="${isFav ? 'fas' : 'far'} fa-heart"></i>
+                        </button>
+                        <div class="play-btn">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="movie-overlay">
+                            <div style="color: white; font-weight: 600;">
+                                <i class="fas fa-download"></i> ${movie.downloads24h.toLocaleString()} downloads today
+                            </div>
+                        </div>
+                    </div>
+                    <div class="movie-info">
+                        <h3 class="movie-title">${movie.title}</h3>
+                        <div class="movie-meta">
+                            <span>${movie.year}</span>
+                            <span>${movie.genreDisplay}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Modal Functions
+        function openMovie(id) {
+            currentMovie = moviesDB.find(m => m.id === id);
+            if (!currentMovie) return;
+
+            document.getElementById('modalTitle').textContent = currentMovie.title;
+            document.getElementById('modalPoster').src = currentMovie.poster;
+            document.getElementById('modalRating').textContent = currentMovie.rating;
+            document.getElementById('modalYear').textContent = currentMovie.year;
+            document.getElementById('modalDuration').textContent = currentMovie.duration;
+            document.getElementById('modalGenre').textContent = currentMovie.genreDisplay;
+            document.getElementById('modalLanguage').textContent = currentMovie.language.charAt(0).toUpperCase() + currentMovie.language.slice(1);
+            document.getElementById('modalDescription').textContent = currentMovie.description;
+            
+            const hero = document.getElementById('modalHero');
+            hero.style.setProperty('--modal-bg-img', `url(${currentMovie.backdrop})`);
+            hero.querySelector('.hero-bg').style.backgroundImage = `linear-gradient(to top, var(--card-bg) 0%, transparent 60%), url(${currentMovie.backdrop})`;
+
+            // Update bookmark button
+            const isFav = favorites.includes(id);
+            const bookmarkBtn = document.getElementById('modalBookmark');
+            bookmarkBtn.innerHTML = `<i class="${isFav ? 'fas' : 'far'} fa-heart"></i> ${isFav ? 'Remove from' : 'Add to'} Favorites`;
+            bookmarkBtn.onclick = () => toggleBookmarkModal();
+
+            // Render downloads
+            const downloadContainer = document.getElementById('downloadLinks');
+            downloadContainer.innerHTML = currentMovie.downloads.map(d => `
+                <div class="download-card" onclick="startDownload('${d.quality}', '${d.size}')">
+                    <div class="download-quality">${d.quality}</div>
+                    <div class="download-info">${d.size} • MP4 • x264</div>
+                    <button class="download-btn">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+            `).join('');
+
+            // Render subtitles
+            const subtitleContainer = document.getElementById('subtitleList');
+            subtitleContainer.innerHTML = currentMovie.subtitles.map(s => `
+                <div class="subtitle-item" onclick="downloadSubtitle('${s.code}', '${s.lang}')">
+                    <div class="subtitle-lang">
+                        <img src="${s.flag}" class="lang-flag" alt="${s.lang}">
+                        <span>${s.lang}</span>
+                    </div>
+                    <button class="download-btn" style="width: auto; padding: 0.5rem 1rem;">
+                        <i class="fas fa-download"></i> .SRT
+                    </button>
+                </div>
+            `).join('');
+
+            // Render related movies
+            const related = moviesDB.filter(m => m.id !== id && m.genre === currentMovie.genre).slice(0, 4);
+            document.getElementById('relatedMovies').innerHTML = related.map(m => createMovieCard(m)).join('');
+
+            document.getElementById('movieModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('movieModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            document.getElementById('trailerSection').style.display = 'none';
+            document.getElementById('trailerFrame').src = '';
+        }
+
+        function watchTrailer() {
+            const trailerSection = document.getElementById('trailerSection');
+            const trailerFrame = document.getElementById('trailerFrame');
+            
+            if (trailerSection.style.display === 'none') {
+                trailerFrame.src = currentMovie.trailer;
+                trailerSection.style.display = 'block';
+                trailerSection.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                trailerSection.style.display = 'none';
+                trailerFrame.src = '';
+            }
+        }
+
+        // Favorites Functions
+        function toggleFavorite(id) {
+            const index = favorites.indexOf(id);
+            if (index > -1) {
+                favorites.splice(index, 1);
+                showToast('Removed from favorites');
+            } else {
+                favorites.push(id);
+                showToast('Added to favorites!');
+            }
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            updateFavoritesCount();
+            renderMovies();
+        }
+
+        function toggleBookmarkModal() {
+            if (!currentMovie) return;
+            toggleFavorite(currentMovie.id);
+            const isFav = favorites.includes(currentMovie.id);
+            const bookmarkBtn = document.getElementById('modalBookmark');
+            bookmarkBtn.innerHTML = `<i class="${isFav ? 'fas' : 'far'} fa-heart"></i> ${isFav ? 'Remove from' : 'Add to'} Favorites`;
+        }
+
+        function toggleFavorites() {
+            const panel = document.getElementById('favoritesPanel');
+            const overlay = document.getElementById('overlay');
+            
+            if (panel.classList.contains('active')) {
+                panel.classList.remove('active');
+                overlay.classList.remove('active');
+            } else {
+                renderFavorites();
+                panel.classList.add('active');
+                overlay.classList.add('active');
+            }
+        }
+
+        function renderFavorites() {
+            const container = document.getElementById('favoritesList');
+            if (favorites.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-heart-broken"></i>
+                        <p>No favorites yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const favMovies = moviesDB.filter(m => favorites.includes(m.id));
+            container.innerHTML = favMovies.map(m => `
+                <div class="favorite-item" onclick="openMovie(${m.id}); toggleFavorites();">
+                    <img src="${m.poster}" class="favorite-thumb" alt="${m.title}">
+                    <div class="favorite-info">
+                        <h4>${m.title}</h4>
+                        <p>${m.year} • ${m.genreDisplay}</p>
+                    </div>
+                    <button class="remove-fav" onclick="event.stopPropagation(); toggleFavorite(${m.id}); renderFavorites();">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function updateFavoritesCount() {
+            document.getElementById('fav-count').textContent = favorites.length;
+        }
+
+        // Search & Filter Functions
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const genre = document.getElementById('genreFilter').value;
+            const year = document.getElementById('yearFilter').value;
+            const language = document.getElementById('languageFilter').value;
+            const quality = document.getElementById('qualityFilter').value;
+
+            filteredMovies = moviesDB.filter(movie => {
+                const matchesQuery = movie.title.toLowerCase().includes(query) || 
+                                   movie.genreDisplay.toLowerCase().includes(query);
+                const matchesGenre = !genre || movie.genre === genre;
+                const matchesYear = !year || year === 'older' ? movie.year < 2020 : movie.year.toString() === year;
+                const matchesLang = !language || movie.language === language;
+                const matchesQuality = !quality || movie.quality === quality;
+
+                return matchesQuery && matchesGenre && matchesYear && matchesLang && matchesQuality;
+            });
+
+            // Update all grids with filtered results
+            if (query || genre || year || language || quality) {
+                document.getElementById('topDownloads').innerHTML = filteredMovies.slice(0, 12).map(m => createMovieCard(m)).join('');
+                document.getElementById('recentlyAdded').parentElement.style.display = 'none';
+                document.getElementById('popularMovies').parentElement.style.display = 'none';
+                document.getElementById('trendingTV').parentElement.style.display = 'none';
+            } else {
+                document.getElementById('recentlyAdded').parentElement.style.display = 'block';
+                document.getElementById('popularMovies').parentElement.style.display = 'block';
+                document.getElementById('trendingTV').parentElement.style.display = 'block';
+                renderMovies();
+            }
+        }
+
+        function filterByType(type) {
+            document.getElementById('searchInput').value = '';
+            
+            if (type === 'movie') {
+                filteredMovies = moviesDB.filter(m => m.type === 'movie');
+            } else if (type === 'tv') {
+                filteredMovies = moviesDB.filter(m => m.type === 'tv');
+            } else if (type === 'new') {
+                filteredMovies = [...moviesDB].sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
+            } else if (type === 'popular') {
+                filteredMovies = [...moviesDB].sort((a, b) => b.downloads24h - a.downloads24h);
+            }
+
+            document.getElementById('topDownloads').innerHTML = filteredMovies.slice(0, 12).map(m => createMovieCard(m)).join('');
+            document.getElementById('recentlyAdded').parentElement.style.display = 'none';
+            document.getElementById('popularMovies').parentElement.style.display = 'none';
+            document.getElementById('trendingTV').parentElement.style.display = 'none';
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function filterByGenre(genre) {
+            document.getElementById('genreFilter').value = genre;
+            applyFilters();
+        }
+
+        // Download Functions
+        function startDownload(quality, size) {
+            showToast(`Starting download: ${quality} (${size})`);
+            // Simulate download start
+            setTimeout(() => {
+                alert(`Download started!\n\nFile: ${currentMovie.title} (${quality})\nSize: ${size}\n\nIn a real implementation, this would download from Google Drive, Mega, or your server.`);
+            }, 500);
+        }
+
+        function downloadSubtitle(code, lang) {
+            showToast(`Downloading ${lang} subtitles...`);
+            setTimeout(() => {
+                // Create and download SRT file
+                const srtContent = `1
+00:00:01,000 --> 00:00:04,000
+Downloaded from CineHub
+
+2
+00:00:05,000 --> 00:00:08,000
+${currentMovie.title} - ${lang} Subtitles
+
+3
+00:00:09,000 --> 00:00:12,000
+Enjoy your movie!`;
+                
+                const blob = new Blob([srtContent], { type: 'text/srt' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentMovie.title.replace(/\s+/g, '_')}_${code}.srt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 800);
+        }
+
+        function downloadFeatured() {
+            openMovie(1);
+            setTimeout(() => {
+                document.querySelector('.download-card').click();
+            }, 300);
+        }
+
+        function playFeatured() {
+            openMovie(1);
+            setTimeout(() => {
+                watchTrailer();
+            }, 300);
+        }
+
+        // Utility Functions
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            
+            if (html.getAttribute('data-theme') === 'light') {
+                html.removeAttribute('data-theme');
+                icon.className = 'fas fa-moon';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                html.setAttribute('data-theme', 'light');
+                icon.className = 'fas fa-sun';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                document.getElementById('theme-icon').className = 'fas fa-sun';
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function shareMovie() {
+            if (navigator.share) {
+                navigator.share({
+                    title: currentMovie.title,
+                    text: `Check out ${currentMovie.title} on CineHub!`,
+                    url: window.location.href
+                });
+            } else {
+                // Copy to clipboard
+                navigator.clipboard.writeText(window.location.href);
+                showToast('Link copied to clipboard!');
+            }
+        }
+
+        function showHome() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('genreFilter').value = '';
+            document.getElementById('yearFilter').value = '';
+            document.getElementById('languageFilter').value = '';
+            document.getElementById('qualityFilter').value = '';
+            
+            document.getElementById('recentlyAdded').parentElement.style.display = 'block';
+            document.getElementById('popularMovies').parentElement.style.display = 'block';
+            document.getElementById('trendingTV').parentElement.style.display = 'block';
+            
+            renderMovies();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function viewAll(type) {
+            filterByType(type);
+        }
+
+        function changePage(direction) {
+            if (direction === 'prev' && currentPage > 1) {
+                currentPage--;
+            } else if (direction === 'next' && currentPage < 3) {
+                currentPage++;
+            }
+            updatePagination();
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            updatePagination();
+        }
+
+        function updatePagination() {
+            document.querySelectorAll('.page-btn').forEach((btn, index) => {
+                if (index > 0 && index < 4) {
+                    btn.classList.toggle('active', index === currentPage);
+                }
+            });
+            // Simulate page change
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            alert('Mobile menu would open here with navigation links');
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                if (document.getElementById('favoritesPanel').classList.contains('active')) {
+                    toggleFavorites();
+                }
+            }
+        });
+
+        // Infinite scroll simulation
+        let loading = false;
+        window.addEventListener('scroll', () => {
+            if (loading) return;
+            
+            const scrollPosition = window.innerHeight + window.scrollY;
+            const threshold = document.body.offsetHeight - 500;
+            
+            if (scrollPosition >= threshold) {
+                // Could load more movies here
+            }
+        });
+    </script>
+</body>
+</html>
